@@ -1,13 +1,13 @@
 <?php
 /*
  * Plugin Name: WC Out of Stock Message
- * Plugin URI: 
+ * Plugin URI: https://github.com/coderstimes/wc-out-of-stock-message
  * Description: WooCommerce out of stock custom Message plugin
  * Version: 1.0
  * Author: coderstime
- * Author URI: 
- * Requires at least: 3.8
- * Tested up to: 3.9.1
+ * Author URI: https://profiles.wordpress.org/coderstime/
+ * Domain Path: /languages
+ * License: GPLv2 or later
  * Text Domain: wc_sm
  */
 
@@ -107,8 +107,8 @@ class WC_Stock_Msg {
 
 	public function wc_sm_scripts()
 	{
-		wp_enqueue_style( 'wc-oosm-css', plugin_dir_url(plugin_basename(__FILE__)) . 'assets/wc-oosm.css', '1.0' );
-		wp_enqueue_script( 'wc-oosm-js', plugin_dir_url(plugin_basename(__FILE__)) . 'assets/wc-oosm.js', array('jquery'), '1.0' );
+		wp_enqueue_style( 'wc-inventory-stock-msg', plugin_dir_url(plugin_basename(__FILE__)) . 'assets/wc-sm.css', '1.0' );
+		wp_enqueue_script( 'wc-inventory-stock-msg', plugin_dir_url(plugin_basename(__FILE__)) . 'assets/wc-sm.js', array('jquery'), '1.0' );
 	}
 
 	/*
