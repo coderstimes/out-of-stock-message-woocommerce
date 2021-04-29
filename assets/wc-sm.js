@@ -1,5 +1,4 @@
 ;
-console.log('testing');
 (function($){
   $(document).ready(function(){
 
@@ -21,8 +20,7 @@ console.log('testing');
 
     });
 
-    $('#_stock_status').change(function () 
-    {
+    $('#_stock_status').change(function () {
       $('._out_of_stock_msg_field').addClass('visible');
 
       $('.'+ this.value+'_field').show();
@@ -34,7 +32,7 @@ console.log('testing');
 
     });
 
-    // Out of Stock is selected
+    /*Out of Stock is selected*/
     if( $('#_stock_status').val() == 'outofstock' ){
         $('._out_of_stock_msg_field, ._wc_sm_use_global_note_field').addClass('visible');
     }

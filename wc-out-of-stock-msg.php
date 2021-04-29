@@ -27,7 +27,6 @@ define( 'WP_WCSM_BASENAME', plugin_basename( WP_WCSM_FILE ) );
 define( 'WP_WCSM_DIR', plugin_dir_url( WP_WCSM_FILE ) );
 define( 'WP_WCSM_PATH', plugin_dir_path( WP_WCSM_FILE ) );
 
-
 class WC_Stock_Msg {
 
 	/**
@@ -43,7 +42,7 @@ class WC_Stock_Msg {
         
         add_action( 'init', [ $this, 'localization_setup' ] ); /*Localize our plugin*/
         add_filter( 'plugin_action_links_' . WP_WCSM_BASENAME, [ $this, 'action_links' ] );        
-        add_action( 'admin_enqueue_scripts', [ $this, 'wcosm_scripts' ] );
+        add_action( 'admin_enqueue_scripts', [ $this, 'wcosm_admin_scripts' ] );
         add_action( 'wp_enqueue_scripts', [ $this, 'wcosm_scripts_frontend' ] );
 
         add_action('woocommerce_product_options_inventory_product_data', [ $this,'wcosm_textbox'], 11);
@@ -94,15 +93,18 @@ class WC_Stock_Msg {
 	 * Admin screen
 	 */
 
-	public function wcosm_scripts ( )
+	public function wcosm_admin_scripts ( )
 	{
 		$screen = get_current_screen();
-		if( $screen->post_type == 'product' &&  $screen->base == 'post') { 
-			$asset_file_link = plugins_url( '/assets/', __FILE__ );
-	        $folder_path= __DIR__ .'/assets/';
-
-			wp_enqueue_style( 'wc-inventory-stock-msg', $asset_file_link . 'wc-sm.css', filemtime( $folder_path.'wc-sm.css' ) );
-			wp_enqueue_script( 'wc-inventory-stock-msg', $asset_file_link . 'wc-sm.js', array('jquery'), filemtime($folder_path.'wc-sm.js') );
+		if( $screen->post_type == 'product' &&  $screen->base == 'post') {
+			?>
+			<style>
+				._out_of_stock_note_field, ._wc_sm_use_global_note_field { display: none; }
+				._out_of_stock_note_field.visible, ._wc_sm_use_global_note_field.visible {display: block; }
+				#_out_of_stock_note {min-width: 70%;min-height: 120px; }
+			</style>	
+			<?php
+			wp_enqueue_script( 'wcosm-msg', WP_WCSM_DIR . 'assets/wc-sm.js', array('jquery'), filemtime( WP_WCSM_PLUGIN_PATH .'/assets/wc-sm.js') );
 		}
 		
 	}
@@ -140,7 +142,7 @@ class WC_Stock_Msg {
 				'id' => '_out_of_stock_msg',
 				'wrapper_class' => 'outofstock_field',
 				'label' => __( 'Out of Stock Message', 'wcosm' ),
-				'desc_tip' => 'true',
+				'desc_tip' => true,
 				'value' => $val,
 				'description' => __( 'Enter an optional note to out of stock item.', 'wcosm' ),
 				'style' => 'width:70%;'
@@ -152,7 +154,9 @@ class WC_Stock_Msg {
 				'wrapper_class' => 'outofstock_field',
 				'label' => __( 'Use Global Message', 'wcosm' ),
 				'cbvalue' => 'yes',
-				'value' => esc_attr( $post->_wcosm_use_global_note )
+				'value' => esc_attr( $post->_wcosm_use_global_note ),
+				'desc_tip' => true,
+				'description' => __( 'Tick this if you want to show global out of stock message.', 'wcosm' ),
 			)
 		);
 	}
@@ -229,7 +233,6 @@ class WC_Stock_Msg {
 
 
 add_action( 'plugins_loaded',function(){
-
 	/*Include the main WooCommerce class.*/
 	if ( ! class_exists( 'WooCommerce', false ) ) {
 		die('please install woocommerce plugin first to use the plugin');
