@@ -1,26 +1,43 @@
 ;
-
+console.log('testing');
 (function($){
+  $(document).ready(function(){
 
-    $('#_stock_status').change(function () {
+    setTimeout(function() {
+      $('._stock_status_field').show();
+    }, 1000);
 
-    var text = $(this).find('option:selected').attr('value');
+    $('.wc_input_stock').change(function(){
+      if ( this.value < 1 ) {
+        $('._out_of_stock_msg_field').addClass('visible');
 
-    $('._out_of_stock_note_field').addClass('visible');
+        $('.'+ this.value+'_field').show();
 
-    $('.'+text+'_field').show();
+        if( this.value == 'instock' ){
+          $('.outofstock_field').hide();
+          $('#_out_of_stock_msg').text('');
+        }
+      }
 
-    if(text == 'instock'){
-      $('.outofstock_field').hide();
-      $('#_out_of_stock_note').text('');
+    });
+
+    $('#_stock_status').change(function () 
+    {
+      $('._out_of_stock_msg_field').addClass('visible');
+
+      $('.'+ this.value+'_field').show();
+
+      if( this.value == 'instock' ){
+        $('.outofstock_field').hide();
+        $('#_out_of_stock_msg').text('');
+      }
+
+    });
+
+    // Out of Stock is selected
+    if( $('#_stock_status').val() == 'outofstock' ){
+        $('._out_of_stock_msg_field, ._wc_sm_use_global_note_field').addClass('visible');
     }
-
-  });
-
-  // Out of Stock is selected
-  if($('option[value="outofstock"]').is(":selected")){
-      $('._out_of_stock_note_field, ._wc_oosm_use_global_note_field').addClass('visible');
-
-  }
+  }); 
 
 })(jQuery);
