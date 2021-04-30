@@ -1,7 +1,7 @@
 <?php
 /*
  * Plugin Name: Out of Stock Message for WooCommerce
- * Plugin URI: https://github.com/coderstimes/wc-out-of-stock-message
+ * Plugin URI: https://github.com/coderstimes/out-of-stock-message-woocommerce
  * Description: Out Of Stock product Message for WooCommerce plugin. This plugin for those who want to set custom notification message when individual product out of stock. It will show message on single product after title for visitor notify.
  * Version: 1.0.0
  * Author: coderstime
