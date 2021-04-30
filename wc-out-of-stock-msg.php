@@ -27,7 +27,7 @@ define( 'WP_WCSM_BASENAME', plugin_basename( WP_WCSM_FILE ) );
 define( 'WP_WCSM_DIR', plugin_dir_url( WP_WCSM_FILE ) );
 define( 'WP_WCSM_PATH', plugin_dir_path( WP_WCSM_FILE ) );
 
-class WC_Stock_Msg {
+class StockOut_Msg_CodersTime {
 
 	/**
      *
@@ -263,6 +263,6 @@ add_action( 'plugins_loaded',function(){
 	if ( ! class_exists( 'WooCommerce', false ) ) {
 		die('please install woocommerce plugin first to use the plugin');
 	} else {
-		new WC_Stock_Msg;
+		new StockOut_Msg_CodersTime;
 	}
 } );
