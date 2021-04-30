@@ -75,7 +75,7 @@ class StockOut_Msg_CodersTime {
 
     public function deactivate ( ) 
     {
-    	defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
+    	// defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
         update_option( 'wcosm_deactive',time() );
     }
 
