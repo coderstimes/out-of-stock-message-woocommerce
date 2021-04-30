@@ -65,6 +65,7 @@ Out of stock plugin is a quick solution for woocommerce product inventory system
 1. Image for the Plugin Position
 2. Image for the Plugin Form
 3. Result of the Plugin Action
+4. Dashboard Metabox for Quick View
 
 == Changelog ==
  
