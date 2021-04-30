@@ -1,6 +1,6 @@
-=== WC Out of Stock Message ===
+=== Out of Stock Message for WooCommerce ===
 Contributors: coderstime, lincolndu
-Tags: woocommerce, wc, stock message, message, out of stock message, custom out of stock message
+Tags: woocommerce, wc, stock message, message, out of stock message, custom out of stock message, STOCKOUT, stock out message, Stock, Inventory Limit, Stock out Note, Out of Stock Note, Out of Stock product Message
 Requires at least: 4.9 or higher
 Tested up to: 5.7
 Requires PHP: 5.6

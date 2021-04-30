@@ -1,6 +1,6 @@
 <?php
 /*
- * Plugin Name: WC Out of Stock Message
+ * Plugin Name: Out of Stock Message for WooCommerce
  * Plugin URI: https://github.com/coderstimes/wc-out-of-stock-message
  * Description: WooCommerce out of stock custom Message plugin
  * Version: 1.0.0
@@ -50,7 +50,28 @@ class WC_Stock_Msg {
         add_action('woocommerce_single_product_summary',[$this,'wc_single_product_msg'], 6);
         add_filter( 'woocommerce_inventory_settings', [ $this,'wcosm_setting'], 1 );
 
+        add_action('wp_dashboard_setup', [ $this,'add_stockout_msg_dashboard'] );
+
     }
+
+    public function add_stockout_msg_dashboard() {
+        add_meta_box('stockout_msg_widget', __('Stock Out Message','wcosm'), [$this,'stockout_msg_dashboard_widget'], 'dashboard', 'side', 'low');
+    }
+
+    public function stockout_msg_dashboard_widget() {
+    	$global_msg = get_option('woocommerce_out_of_stock_message');
+
+    	?>
+    	<div class="rss-widget">
+    		<h3> <strong> <?php echo __('Stock Out Current Message','wcosm');  ?>: </strong></h3>
+    		<p>
+    			<?php echo $global_msg; ?>
+    		</p>
+    		<a href="<?php echo admin_url( 'admin.php?page=wc-settings&tab=products&section=inventory' ) ?>"><button style="padding: 10px 30px;margin:10px 0px; font-size: 16px;background: #607d8b;color: #fff;border: none;border-radius: 5px;width: fit-content;"> <?php echo __( 'Change Message', 'wcosm' ) ?> </button></a>
+    	</div>
+        <?php 
+    }
+
 
     /**
      *
