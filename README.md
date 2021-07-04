@@ -4,11 +4,11 @@ Tags: woocommerce, wc, stock message, message, out of stock message, custom out 
 Requires at least: 4.9 or higher
 Tested up to: 5.7
 Requires PHP: 5.6
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
-Woocommerce out of stock custom message is an official plugin maintained by the Coderstime team that adds an extra feature on the “woocommerce inventory settings” option on the woocommerce.
+Out of Stock Message for WooCommerce is an official plugin maintained by the Coderstime that add an extra feature on the “woocommerce inventory settings” option on the woocommerce.
 
 == Description ==
 Woocommerce out of stock custom message is an official Coderstime plugin, and will be fully supported and maintained until at least 2022, or as long as is necessary.
@@ -69,6 +69,13 @@ Out of stock plugin is a quick solution for woocommerce product inventory system
 
 == Changelog ==
  
+= 1.0.1 =
+* Admin Email alert when stock out
+* Change message Background color
+* Change message Text color
+* Product page message showing area 
+
+
 = 1.0.0 =
 * Initial release.
 
