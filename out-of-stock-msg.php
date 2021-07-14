@@ -2,8 +2,8 @@
 /*
  * Plugin Name: Out of Stock Message for WooCommerce
  * Plugin URI: https://coderstimes.com/stock-out/
- * Description: Out Of Stock Message for WooCommerce plugin for those stock out or sold out message for product details page. Also message can be show with shortcode support. Message can be set for specific product or globally for all products when it sold out. You can change message background and text color also. It will show message on single product where admin select to show. Admin also will be notified by email when product stock out. 
- * Version: 1.0.1
+ * Description: Out Of Stock Message for WooCommerce plugin for those stock out or sold out message for product details page. Also message can be show with shortcode support. Message can be set for specific product or globally for all products when it sold out. You can change message background and text color from woocommerce inventory settings and customizer woocommerce section. It will show message on single product where admin select to show. Admin also will be notified by email when product stock out. 
+ * Version: 1.0.2
  * Author: coderstime
  * Author URI: https://www.facebook.com/coderstime
  * Domain Path: /languages
