@@ -28,6 +28,8 @@ define( 'WP_WCSM_DIR', plugin_dir_url( WP_WCSM_FILE ) );
 define( 'WP_WCSM_PATH', plugin_dir_path( WP_WCSM_FILE ) );
 
 
+if (!class_exists('StockOut_Msg_CodersTime')) :
+
 class StockOut_Msg_CodersTime {
 
 	/**
@@ -64,6 +66,174 @@ class StockOut_Msg_CodersTime {
         add_filter('woocommerce_email_classes', array($this, 'wcosm_product_stock_alert_mail'));
 
         add_shortcode( 'wcosm_stockout_msg', array($this,'wcosm_get_shortcode') );
+
+        /*customizer settings*/
+        add_action( 'customize_register', array( $this,'wcosm_customize_register' ) );
+
+        /*widget load*/
+        add_action( 'widgets_init', array( $this, 'wcosm_load_widget') );
+    }
+
+    /*Out of stock message widget method*/
+    public function wcosm_load_widget( $value='' )
+    {
+    	/*widget area*/
+        include('widget-out-of-stock.php');
+        register_widget( 'WCOSM_StockOut_Widget' );
+    }
+
+    /*
+    	* Plugin customizer settings
+    */
+    public function wcosm_customize_register ( $wp_customize ) 
+    {
+    	$wp_customize->add_section(
+			'wcosm_stock_out_message',
+			array(
+				'title'    => __( 'Stock Out Message', 'wcosm' ),
+				'priority' => 50,
+				'panel'    => 'woocommerce',
+			)
+		);
+
+    	/*Add Manage Stock Setting.*/
+	    $wp_customize->add_setting( 'woocommerce_manage_stock', array(
+	        'default'           => true,
+	        'type'              => 'option',
+	        'transport'         => 'postMessage',
+	        'sanitize_callback' => 'wcosm_sanitize_checkbox',
+	    ) );
+
+	    $wp_customize->add_control( 'woocommerce_manage_stock', array(
+	        'label'    => __( 'Manage stock', 'wcosm' ),
+	        'section'  => 'wcosm_stock_out_message',
+	        'settings' => 'woocommerce_manage_stock',
+	        'type'     => 'checkbox',
+	        'priority' => 10,
+	    ) );
+
+
+	    $wp_customize->add_setting(
+			'woocommerce_out_of_stock_message',
+			array(
+				'default'           => __( 'Sorry, This product now out of stock, Check again later. (global Message)', 'wcosm' ),
+				'type'              => 'option',
+				'capability'        => 'manage_woocommerce',
+				'sanitize_callback' => 'wp_kses_post',
+				'transport'         => 'postMessage',
+			)
+		);
+
+		$wp_customize->add_control(
+			'woocommerce_out_of_stock_message',
+			array(
+				'label'       => __( 'Out of Stock Message', 'wcosm' ),
+				'description' => __( 'Message for out of stock product.', 'wcosm' ),
+				'section'     => 'wcosm_stock_out_message',
+				'settings'    => 'woocommerce_out_of_stock_message',
+				'type'        => 'textarea',
+				'priority' 	  => 20,
+			)
+		);
+
+		/*Add Manage Stock Setting.*/
+	    $wp_customize->add_setting( 'woocommerce_notify_no_stock', array(
+	        'default'           => true,
+	        'type'              => 'option',
+	        'transport'         => 'postMessage',
+	        'sanitize_callback' => 'wcosm_sanitize_checkbox',
+	    ) );
+
+		$wp_customize->add_control(
+			'woocommerce_notify_no_stock',
+			array(
+				'label'    => __( 'Enable out of stock notifications', 'wcosm' ),
+				'section'  => 'wcosm_stock_out_message',
+				'settings' => 'woocommerce_notify_no_stock',
+				'type'     => 'checkbox',
+				'priority' => 30,
+			)
+		);
+
+		/*Stock out display box Background Color*/
+		$wp_customize->add_setting(
+			'woocommerce_out_of_stock[color]', array(
+			  'default' 		  => '#fff999',
+			  'sanitize_callback' => 'sanitize_hex_color',
+			  'type' 			  => 'option',
+			  'transport'         => 'postMessage',
+			  'capability' 		  => 'manage_woocommerce'
+			)
+		);  
+
+		$wp_customize->add_control( new WP_Customize_Color_Control( 
+			$wp_customize, 'woocommerce_out_of_stock[color]', array(
+				'label' 		=> esc_html__( 'Out of Stock Background Color', 'ctpress' ),
+				'description' 	=> esc_html__( 'Stock Out message display are Background Color', 'ctpress' ),
+				'section'   	=> 'wcosm_stock_out_message',
+				'settings'  	=> 'woocommerce_out_of_stock[color]',
+				'priority' 		=> 30,
+			)
+			)
+		);
+
+		/*Stock out display box Text Color*/
+		$wp_customize->add_setting(
+			'woocommerce_out_of_stock[textcolor]', array(
+			  'default' 		  => '#000',
+			  'sanitize_callback' => 'sanitize_hex_color',
+			  'type' 			  => 'option',
+			  'transport'         => 'postMessage',
+			  'capability' 		  => 'manage_woocommerce'
+			)
+		);  
+
+		$wp_customize->add_control( new WP_Customize_Color_Control( 
+			$wp_customize, 'woocommerce_out_of_stock[textcolor]', array(
+				'label' 		=> esc_html__( 'Out of Stock Background Color', 'ctpress' ),
+				'description' 	=> esc_html__( 'Stock Out message display are Background Color', 'ctpress' ),
+				'section'   	=> 'wcosm_stock_out_message',
+				'settings'  	=> 'woocommerce_out_of_stock[textcolor]',
+				'priority' 		=> 30,
+			)
+			)
+		);
+
+		$wp_customize->add_setting(
+			'woocommerce_out_of_stock[position]',
+			array(
+				'default'    => '',
+				'type'       => 'option',
+				'capability' => 'manage_woocommerce',
+			)
+		);
+
+		$stockout_position_choice = array(
+	      'woocommerce_single_product_summary' 			=> __( 'WC Single Product Summary', 'woocommerce' ),
+	      'woocommerce_before_single_product_summary'	=> __( 'WC Before Single Product Summary', 'woocommerce' ),
+	      'woocommerce_after_single_product_summary'	=> __( 'WC After Single Product Summary', 'woocommerce' ),
+	      'woocommerce_before_single_product' 			=> __( 'WC Before Single Product', 'woocommerce' ),
+	      'woocommerce_after_single_product' 			=> __( 'WC After Single Product', 'woocommerce' ),
+	      'woocommerce_product_meta_start' 				=> __( 'WC product meta start', 'woocommerce' ),
+	      'woocommerce_product_meta_end' 				=> __( 'WC product meta end', 'woocommerce' ),
+	      'woocommerce_product_thumbnails' 				=> __( 'WC product thumbnails', 'woocommerce' ),
+	      'woocommerce_product_thumbnails' 				=> __( 'WC product thumbnails', 'woocommerce' ),
+	    );
+
+		$wp_customize->add_control(
+			'woocommerce_out_of_stock[position]',
+			array(
+				'label'    => __( 'Out of Stock Display Position', 'woocommerce' ),
+				'section'  => 'wcosm_stock_out_message',
+				'settings' => 'woocommerce_out_of_stock[position]',
+				'type'     => 'select',
+				'choices'  => $stockout_position_choice,
+				'priority' => 40,
+			)
+		);
+
+
+
 
     }
 
@@ -167,7 +337,7 @@ class StockOut_Msg_CodersTime {
 
 	public function wcosm_scripts_frontend()
 	{
-		$bg_color = get_option('woocommerce_out_of_stock_color') ? : '#fff999';
+		$bg_color 	= get_option('woocommerce_out_of_stock_color') ? : '#fff999';
 		$text_color = get_option('woocommerce_out_of_stock_textcolor') ? : '#000';
 		?>
 		<style>
@@ -192,24 +362,24 @@ class StockOut_Msg_CodersTime {
 	    }
 
 		woocommerce_wp_textarea_input(  array(
-				'id' => '_out_of_stock_msg',
+				'id' 			=> '_out_of_stock_msg',
 				'wrapper_class' => 'outofstock_field',
-				'label' => __( 'Out of Stock Message', 'wcosm' ),
-				'desc_tip' => true,
-				'value' => $val,
-				'description' => __( 'Enter an optional note to out of stock item.', 'wcosm' ),
-				'style' => 'width:70%;'
+				'label' 		=> __( 'Out of Stock Message', 'wcosm' ),
+				'desc_tip' 		=> true,
+				'value' 		=> $val,
+				'description' 	=> __( 'Enter an optional note to out of stock item.', 'wcosm' ),
+				'style' 		=> 'width:70%;'
 			)
 		);
 
 		woocommerce_wp_checkbox( array(
-				'id' => '_wcosm_use_global_note',
+				'id' 			=> '_wcosm_use_global_note',
 				'wrapper_class' => 'outofstock_field',
-				'label' => __( 'Use Global Message', 'wcosm' ),
-				'cbvalue' => 'yes',
-				'value' => esc_attr( $post->_wcosm_use_global_note ),
-				'desc_tip' => true,
-				'description' => __( 'Tick this if you want to show global out of stock message.', 'wcosm' ),
+				'label' 		=> __( 'Use Global Message', 'wcosm' ),
+				'cbvalue' 		=> 'yes',
+				'value' 		=> esc_attr( $post->_wcosm_use_global_note ),
+				'desc_tip' 		=> true,
+				'description' 	=> __( 'Tick this if you want to show global out of stock message.', 'wcosm' ),
 			)
 		);
 	}
@@ -229,11 +399,11 @@ class StockOut_Msg_CodersTime {
 	public function wc_single_product_msg ( ) 
 	{
 		global $post, $product;
-		$get_saved_val = get_post_meta( $post->ID, '_out_of_stock_msg', true);
-		$global_checkbox = get_post_meta($post->ID, '_wcosm_use_global_note', true);
-		$global_note = get_option('woocommerce_out_of_stock_message');
+		$get_saved_val 		= get_post_meta( $post->ID, '_out_of_stock_msg', true);
+		$global_checkbox 	= get_post_meta($post->ID, '_wcosm_use_global_note', true);
+		$global_note 		= get_option('woocommerce_out_of_stock_message');
 
-		$wcosm_email_admin = get_option('wcosm_email_admin');
+		$wcosm_email_admin 	= get_option('wcosm_email_admin');
 
 		if( $get_saved_val && !$product->is_in_stock() && $global_checkbox != 'yes') {
 			printf( '<div class="outofstock-message">%s</div> <!-- /.outofstock-product_message -->', $get_saved_val );
@@ -266,7 +436,7 @@ class StockOut_Msg_CodersTime {
 		);
 
 		$out_stock[] = array (
-			'title' => __( 'Out of Stock BG Color', 'woocommerce' ),
+			'title' 	=> __( 'Out of Stock BG Color', 'woocommerce' ),
 			'desc' 		=> __( 'Background Color for out of stock message.', 'woocommerce' ),
 			'id' 		=> 'woocommerce_out_of_stock[color]',
 			'css' 		=> 'width:50%;height:31px;',
@@ -275,7 +445,7 @@ class StockOut_Msg_CodersTime {
 		);
 
 		$out_stock[] = array (
-			'title' => __( 'Out of Stock Text Color', 'woocommerce' ),
+			'title' 	=> __( 'Out of Stock Text Color', 'woocommerce' ),
 			'desc' 		=> __( 'Text Color for out of stock message.', 'woocommerce' ),
 			'id' 		=> 'woocommerce_out_of_stock[textcolor]',
 			'css' 		=> 'width:50%;height:31px;',
@@ -349,14 +519,31 @@ class StockOut_Msg_CodersTime {
         <?php 
     }
 
+    /**
+	 * Checkbox sanitization callback
+	 *
+	 * @param bool $checked Whether the checkbox is checked.
+	 * @return bool Whether the checkbox is checked.
+	 */
+	function wcosm_sanitize_checkbox( $checked ) {
+		/*Boolean check.*/
+		return ( ( isset( $checked ) && true === $checked ) ? true : false );
+	}
+
 
 }
 
+endif;
 
 add_action( 'plugins_loaded',function(){
 	/*Include the main WooCommerce class.*/
 	if ( ! class_exists( 'WooCommerce', false ) ) {
-		die('please install woocommerce plugin first to use the plugin');
+		add_action( 'admin_notices', function(){
+			$message = __('please install <strong>woocommerce </strong> plugin first to use <strong>Out of Stock Message </strong> plugin', 'wcosm');
+			printf('<div class="notice notice-warning is-dismissible">
+				<p>%s</p>
+			</div>', $message);
+		});
 	} else {
 		new StockOut_Msg_CodersTime;
 	}

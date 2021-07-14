@@ -25,6 +25,7 @@ class StockOut_Stock_Alert extends WC_Email {
 	 *
 	 * @access public
 	 * @return void
+	 * @author coderstime
 	 */
 	function __construct() {
 		
@@ -39,9 +40,8 @@ class StockOut_Stock_Alert extends WC_Email {
 		/*Call parent constuctor*/
 		parent::__construct();
 
-		// Other settings.
-		$this->recipient = $this->get_option( 'recipient', get_option( 'admin_email' ) );
-
+		/*Other settings.*/
+		$this->recipient = $this->get_option( 'recipient', get_option( 'woocommerce_stock_email_recipient' ) );
 	}
 
 	/**
@@ -49,6 +49,7 @@ class StockOut_Stock_Alert extends WC_Email {
 	 *
 	 * @access public
 	 * @return void
+	 * @author coderstime
 	 */
 	function trigger( $recipient, $product_id ) 
 	{
