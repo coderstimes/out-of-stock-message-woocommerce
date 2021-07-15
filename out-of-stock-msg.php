@@ -3,7 +3,7 @@
  * Plugin Name: Out of Stock Message for WooCommerce
  * Plugin URI: https://coderstimes.com/stock-out/
  * Description: Out Of Stock Message for WooCommerce plugin for those stock out or sold out message for product details page. Also message can be show with shortcode support. Message can be set for specific product or globally for all products when it sold out. You can change message background and text color from woocommerce inventory settings and customizer woocommerce section. It will show message on single product where admin select to show. Admin also will be notified by email when product stock out. 
- * Version: 1.0.3
+ * Version: 1.0.4
  * Author: coderstime
  * Author URI: https://www.facebook.com/coderstime
  * Domain Path: /languages
@@ -35,8 +35,9 @@ class StockOut_Msg_CodersTime {
 	/**
      *
      * construct method description
-     *
-     */
+     * @version 1.0.4
+     * @author Coders Time
+    */
     public function __construct ( ) 
     {
         register_activation_hook( WP_WCSM_FILE, array( $this, 'wcosm_activate' ) ); /*plugin activation hook*/
@@ -81,8 +82,9 @@ class StockOut_Msg_CodersTime {
         register_widget( 'WCOSM_StockOut_Widget' );
     }
 
-    /*
+    /**
     	* Plugin customizer settings
+    	* @author Coders Time
     */
     public function wcosm_customize_register ( $wp_customize ) 
     {
@@ -282,10 +284,21 @@ class StockOut_Msg_CodersTime {
 	 * Admin screen
 	 */
 
-	public function wcosm_admin_scripts ( )
+	public function wcosm_admin_scripts ( $hook )
 	{
 		$screen = get_current_screen();
-		if( $screen->post_type == 'product' &&  $screen->base == 'post') {
+
+		if ( 'dashboard' === $screen->base ) 
+		{
+			wp_enqueue_style( 'bootstrap', WP_WCSM_DIR . 'assets/bootstrap/bootstrap.min.css',array(), '5.0.2' );
+			wp_enqueue_style( 'datatable', WP_WCSM_DIR . 'assets/datatable/dataTables.bootstrap5.min.css',array(), '1.10.25' );
+			wp_enqueue_script( 'datatable-jquery', WP_WCSM_DIR . 'assets/datatable/jquery.dataTables.min.js',array('jquery'), '1.10.25', true );
+			wp_enqueue_script( 'datatable-bootstrap', WP_WCSM_DIR . 'assets/datatable/dataTables.bootstrap5.min.js',array('jquery'), '1.10.25', true );
+			wp_enqueue_script( 'plugin-datatable', WP_WCSM_DIR . 'assets/datatable/plugin-datatable.js',array('jquery'),true );
+		}
+		
+		if( $screen->post_type == 'product' &&  $screen->base == 'post') 
+		{
 			?>
 			<style>
 				._out_of_stock_note_field, ._wc_sm_use_global_note_field { display: none; }
@@ -462,28 +475,104 @@ class StockOut_Msg_CodersTime {
             ], $links );
     }
 
-    /*
+    /**
     	* Add Dashboard metabox for quick review and go to settings page
+    	* @version 1.0.4
+    	* @author Lincoln Mahmud
     */
 
     public function add_stockout_msg_dashboard() 
     {
-        add_meta_box('stockout_msg_widget', __('Stock Out Message','wcosm'), [$this,'stockout_msg_dashboard_widget'], 'dashboard', 'side', 'low');
+        add_meta_box('stockout_msg_widget', __('Stock Out Message','wcosm'), array($this,'stockout_msg_dashboard_widget'), 'dashboard', 'side', 'low');
     }
 
-    /*Dashboard metabox details info */
+    /** 
+     * *Dashboard metabox details info 
+     * @version 1.0.4
+     * @author Lincoln Mahmud
+     * 
+    */
     public function stockout_msg_dashboard_widget() 
     {
     	$global_msg = get_option('woocommerce_out_of_stock_message');
 
     	?>
     	<div class="rss-widget">
-    		<h3> <strong> <?php echo __('Stock Out Current Message','wcosm');  ?>: </strong></h3>
-    		<p>
-    			<?php echo $global_msg; ?>
+    		<h3> <?php esc_html_e('Stock Out Global Message :','wcosm');  ?> </h3>
+    		<?php printf('<p> %s </p>',$global_msg); ?>
+    		
+    		<p class="text-center">
+    			<a href="<?php echo admin_url( 'admin.php?page=wc-settings&tab=products&section=inventory' ) ?>"><button style="padding: 5px 20px;margin: 10px 0px;font-size: 16px;background: #607d8b;color: #fff;border: none;border-radius: 5px;"> <?php echo __( 'Change Global Message', 'wcosm' ) ?> </button></a>
     		</p>
-    		<a href="<?php echo admin_url( 'admin.php?page=wc-settings&tab=products&section=inventory' ) ?>"><button style="padding: 10px 30px;margin:10px 0px; font-size: 16px;background: #607d8b;color: #fff;border: none;border-radius: 5px;width: fit-content;"> <?php echo __( 'Change Message', 'wcosm' ) ?> </button></a>
+    		
     	</div>
+
+    	<div class="rss-widget">
+    		
+
+    		<div class="data_area mt-3">
+    			
+    			<table id="example" class="table table-striped display" style="width:100%">
+			        <thead>
+			            <tr>
+			                <th> <?php esc_html_e('Product','wcosm'); ?> </th>
+			                <th> <?php esc_html_e('Stock','wcosm'); ?> </th>
+			                <th> <?php esc_html_e('Message','wcosm'); ?> </th>
+			            </tr>
+			        </thead>
+			        <tbody>
+
+			        	<?php 
+			        		$args = array( 
+			        			'limit' => -1, 
+			        			'orderby' => 'name', 
+			        			'order' => 'ASC', 
+			        			// 'stock_quantity' => 1,
+			        			// 'status' 		=> 'publish',
+			        			'manage_stock' 	=> 1,
+			        			// 'stock_status' 	=> 'outofstock',
+			        		);
+			        		$out_products = wc_get_products( $args );
+
+			        		foreach( $out_products as $out_product ):
+			        			$get_saved_val 		= get_post_meta( $out_product->id, '_out_of_stock_msg', true);
+								$global_checkbox 	= get_post_meta( $out_product->id, '_wcosm_use_global_note', true);
+
+			        	 ?>
+
+				            <tr>
+				                <td> <?php echo $out_product->name; ?> </td>
+				                <td> <?php echo $out_product->stock_quantity; ?> </td>
+				                <td> 
+				                	<?php 
+					                	if( $get_saved_val && $global_checkbox != 'yes') {
+											printf( '%s', $get_saved_val );
+										}
+										if( $global_checkbox == 'yes' ) {
+											printf( '%s', $global_msg );
+										}
+				                	?> 
+				                </td>
+				            </tr>	
+				        <?php endforeach; ?>
+
+			        </tbody>
+			        <tfoot>
+			            <tr>
+			                <th> <?php esc_html_e('Product','wcosm'); ?> </th>
+			                <th> <?php esc_html_e('Stock','wcosm'); ?> </th>
+			                <th> <?php esc_html_e('Message','wcosm'); ?> </th>
+			            </tr>
+			        </tfoot>
+			    </table>
+    		</div>
+    		
+    	</div>
+
+
+
+
+
         <?php 
     }
 
@@ -492,8 +581,8 @@ class StockOut_Msg_CodersTime {
 	 *
 	 * @param bool $checked Whether the checkbox is checked.
 	 * @return bool Whether the checkbox is checked.
-	 */
-	function wcosm_sanitize_checkbox( $checked ) 
+	*/
+	public function wcosm_sanitize_checkbox( $checked ) 
 	{
 		/*Boolean check.*/
 		return ( ( isset( $checked ) && true === $checked ) ? true : false );
