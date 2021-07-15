@@ -5,7 +5,7 @@ Tags: woocommerce, wc, stock message, message, out of stock message, custom out 
 Requires at least: 4.9 or higher
 Tested up to: 5.7
 Requires PHP: 5.6
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -86,6 +86,9 @@ Out of stock plugin is a quick solution for woocommerce product inventory system
 5. StockOut Admin Alert Email
 
 == Changelog ==
+
+= 1.0.3 =
+* bug fix for default data
 
 = 1.0.2 =
 * add customizer settings on woocommerce section

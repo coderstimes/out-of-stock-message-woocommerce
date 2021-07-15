@@ -3,7 +3,7 @@
  * Plugin Name: Out of Stock Message for WooCommerce
  * Plugin URI: https://coderstimes.com/stock-out/
  * Description: Out Of Stock Message for WooCommerce plugin for those stock out or sold out message for product details page. Also message can be show with shortcode support. Message can be set for specific product or globally for all products when it sold out. You can change message background and text color from woocommerce inventory settings and customizer woocommerce section. It will show message on single product where admin select to show. Admin also will be notified by email when product stock out. 
- * Version: 1.0.2
+ * Version: 1.0.3
  * Author: coderstime
  * Author URI: https://www.facebook.com/coderstime
  * Domain Path: /languages
@@ -37,11 +37,10 @@ class StockOut_Msg_CodersTime {
      * construct method description
      *
      */
-
     public function __construct ( ) 
     {
-        register_activation_hook( WP_WCSM_FILE, array( $this, 'activate' ) ); /*plugin activation hook*/
-        register_deactivation_hook( WP_WCSM_FILE, array( $this, 'deactivate' ) ); /*plugin deactivation hook*/
+        register_activation_hook( WP_WCSM_FILE, array( $this, 'wcosm_activate' ) ); /*plugin activation hook*/
+        register_deactivation_hook( WP_WCSM_FILE, array( $this, 'wcosm_deactivate' ) ); /*plugin deactivation hook*/
         
         add_action( 'init', array( $this, 'localization_setup' ) ); /*Localize our plugin*/
         add_filter( 'plugin_action_links_' . WP_WCSM_BASENAME, array( $this, 'action_links' ) );        
@@ -51,9 +50,9 @@ class StockOut_Msg_CodersTime {
         add_action('woocommerce_product_options_inventory_product_data', array( $this,'wcosm_textbox'), 11);
         add_action('woocommerce_process_product_meta', array( $this, 'wcosm_product_save_data'), 10, 2);
 
-        if( $wc_out_of_stock_position = get_option('woocommerce_out_of_stock')['position'] ) {
+        if( $this->wcosm_option('position') ) {
         	add_filter('woocommerce_get_stock_html','__return_false');
-        	add_action( $wc_out_of_stock_position,array( $this,'wc_single_product_msg'), 6);
+        	add_action( $this->wcosm_option('position'),array( $this,'wc_single_product_msg'), 6);
         } else {
         	add_filter('woocommerce_get_stock_html','__return_false');
         	add_action('woocommerce_single_product_summary',array( $this,'wc_single_product_msg'), 6);
@@ -202,7 +201,7 @@ class StockOut_Msg_CodersTime {
 		$wp_customize->add_setting(
 			'woocommerce_out_of_stock[position]',
 			array(
-				'default'    => '',
+				'default'    => $this->wcosm_option('position'),
 				'type'       => 'option',
 				'capability' => 'manage_woocommerce',
 			)
@@ -232,14 +231,12 @@ class StockOut_Msg_CodersTime {
 			)
 		);
 
-
-
-
     }
 
     /*Get shortcode result*/
 
-    public function wcosm_get_shortcode (  $atts, $key = "" ) {
+    public function wcosm_get_shortcode (  $atts, $key = "" ) 
+    {
     	/*get output*/
     	global $post, $product;
 		$get_saved_val = get_post_meta( $post->ID, '_out_of_stock_msg', true);
@@ -268,35 +265,6 @@ class StockOut_Msg_CodersTime {
         return $emails;
     }
 
-
-    /**
-     *
-     * run when plugin install
-     * install time store on option table
-     */
-
-    public function activate ( ) 
-    {
-        add_option( 'wcosm_active',time() );
-        add_option( 'woocommerce_out_of_stock',[
-        	'color'=>'#fff999', 
-        	'textcolor'=>'#000',
-        	'position'=>'woocommerce_single_product_summary',
-        ] );
-    }
-
-    /**
-     *
-     * run when deactivate the plugin
-     * store deactivate time on database option table
-    */
-    
-
-    public function deactivate ( ) 
-    {
-    	// defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
-        update_option( 'wcosm_deactive',time() );
-    }
 
     /**
      * Initialize plugin for localization
@@ -334,11 +302,10 @@ class StockOut_Msg_CodersTime {
 	* Scripts
 	* Front end
 	*/
-
 	public function wcosm_scripts_frontend()
 	{
-		$bg_color 	= get_option('woocommerce_out_of_stock_color') ? : '#fff999';
-		$text_color = get_option('woocommerce_out_of_stock_textcolor') ? : '#000';
+		$bg_color 	= $this->wcosm_option('color');
+		$text_color = $this->wcosm_option('textcolor');
 		?>
 		<style>
 			.outofstock-message {margin-top: 20px;margin-bottom: 20px;background-color: <?php echo $bg_color; ?>;padding: 20px;color: <?php echo $text_color; ?>;clear:both; }
@@ -427,8 +394,8 @@ class StockOut_Msg_CodersTime {
 	public function wcosm_setting( $setting ) 
 	{
 		$out_stock[] = array (
-			'title' => __( 'Out of Stock Message', 'woocommerce' ),
-			'desc' 		=> __( 'Message for out of stock product.', 'woocommerce' ),
+			'title' => __( 'Out of Stock Message', 'wcosm' ),
+			'desc' 		=> __( 'Message for out of stock product.', 'wcosm' ),
 			'id' 		=> 'woocommerce_out_of_stock_message',
 			'css' 		=> 'width:60%; height: 125px;margin-top:10px;',
 			'type' 		=> 'textarea',
@@ -436,8 +403,8 @@ class StockOut_Msg_CodersTime {
 		);
 
 		$out_stock[] = array (
-			'title' 	=> __( 'Out of Stock BG Color', 'woocommerce' ),
-			'desc' 		=> __( 'Background Color for out of stock message.', 'woocommerce' ),
+			'title' 	=> __( 'Out of Stock BG Color', 'wcosm' ),
+			'desc' 		=> __( 'Background Color for out of stock message.', 'wcosm' ),
 			'id' 		=> 'woocommerce_out_of_stock[color]',
 			'css' 		=> 'width:50%;height:31px;',
 			'type' 		=> 'color',
@@ -445,8 +412,8 @@ class StockOut_Msg_CodersTime {
 		);
 
 		$out_stock[] = array (
-			'title' 	=> __( 'Out of Stock Text Color', 'woocommerce' ),
-			'desc' 		=> __( 'Text Color for out of stock message.', 'woocommerce' ),
+			'title' 	=> __( 'Out of Stock Text Color', 'wcosm' ),
+			'desc' 		=> __( 'Text Color for out of stock message.', 'wcosm' ),
 			'id' 		=> 'woocommerce_out_of_stock[textcolor]',
 			'css' 		=> 'width:50%;height:31px;',
 			'type' 		=> 'color',
@@ -454,26 +421,27 @@ class StockOut_Msg_CodersTime {
 		);
 
 		$out_stock[] = array (
-		    'name'    => __( 'Out of Stock Display Position', 'woocommerce' ),
-		    'desc'    => __( 'This controls the position of out of stock message.', 'woocommerce' ),
+		    'name'    => __( 'Out of Stock Display Position', 'wcosm' ),
+		    'desc'    => __( 'This controls the position of out of stock message.', 'wcosm' ),
 		    'id'      => 'woocommerce_out_of_stock[position]',
 		    'css'     => 'min-width:150px;',
-		    'std'     => 'woocommerce_single_product_summary', // WooCommerce < 2.0
+		    'std'     => 'woocommerce_single_product_summary', /*WooCommerce < 2.0*/
 		    'default' => 'woocommerce_single_product_summary',
 		    'type'    => 'select',
 		    'options' => array(
-		      'woocommerce_single_product_summary' => __( 'WC Single Product Summary', 'woocommerce' ),
-		      'woocommerce_before_single_product_summary'=> __( 'WC Before Single Product Summary', 'woocommerce' ),
-		      'woocommerce_after_single_product_summary'=> __( 'WC After Single Product Summary', 'woocommerce' ),
-		      'woocommerce_before_single_product' => __( 'WC Before Single Product', 'woocommerce' ),
-		      'woocommerce_after_single_product' => __( 'WC After Single Product', 'woocommerce' ),
-		      'woocommerce_product_meta_start' => __( 'WC product meta start', 'woocommerce' ),
-		      'woocommerce_product_meta_end' => __( 'WC product meta end', 'woocommerce' ),
-		      'woocommerce_product_thumbnails' => __( 'WC product thumbnails', 'woocommerce' ),
-		      'woocommerce_product_thumbnails' => __( 'WC product thumbnails', 'woocommerce' ),
+		      'woocommerce_single_product_summary' 			=> __( 'WC Single Product Summary', 'wcosm' ),
+		      'woocommerce_before_single_product_summary'	=> __( 'WC Before Single Product Summary', 'wcosm' ),
+		      'woocommerce_after_single_product_summary'	=> __( 'WC After Single Product Summary', 'wcosm' ),
+		      'woocommerce_before_single_product' 			=> __( 'WC Before Single Product', 'wcosm' ),
+		      'woocommerce_after_single_product' 			=> __( 'WC After Single Product', 'wcosm' ),
+		      'woocommerce_product_meta_start' 				=> __( 'WC product meta start', 'wcosm' ),
+		      'woocommerce_product_meta_end' 				=> __( 'WC product meta end', 'wcosm' ),
+		      'woocommerce_product_thumbnails' 				=> __( 'WC product thumbnails', 'wcosm' ),
+		      'woocommerce_product_thumbnails' 				=> __( 'WC product thumbnails', 'wcosm' ),
 		    ),
 		    'desc_tip' =>  true,
 		);
+
 		array_splice( $setting, 2, 0, $out_stock );
 		return $setting;
 	}
@@ -525,9 +493,79 @@ class StockOut_Msg_CodersTime {
 	 * @param bool $checked Whether the checkbox is checked.
 	 * @return bool Whether the checkbox is checked.
 	 */
-	function wcosm_sanitize_checkbox( $checked ) {
+	function wcosm_sanitize_checkbox( $checked ) 
+	{
 		/*Boolean check.*/
 		return ( ( isset( $checked ) && true === $checked ) ? true : false );
+	}
+
+	    /**
+     *
+     * run when plugin install
+     * install time store on option table
+     */
+    public function wcosm_activate ( ) 
+    {
+        add_option( 'wcosm_active',time() );
+    }
+
+    /**
+     *
+     * run when deactivate the plugin
+     * store deactivate time on database option table
+    */
+    public function wcosm_deactivate ( ) 
+    {
+        update_option( 'wcosm_deactive',time() );
+    }
+
+	/**
+	* Get a single plugin option
+	*
+	* @return mixed
+	*/
+	public function wcosm_option( $option_name = '' ) 
+	{
+		/*Get all Plugin Options from Database.*/
+		$plugin_options = $this->wcosm_options();
+
+		/*Return single option.*/
+		if ( isset( $plugin_options[ $option_name ] ) ) {
+			return $plugin_options[ $option_name ];
+		}
+
+		return false;
+	}
+
+	/**
+	 * Get saved user settings from database or plugin defaults
+	 *
+	 * @return array
+	 */
+	public function wcosm_options() 
+	{
+		/*Merge plugin options array from database with default options array.*/
+		$plugin_options = wp_parse_args( get_option( 'woocommerce_out_of_stock', array() ), $this->plugin_default() );
+
+		/*Return plugin options.*/
+		return apply_filters( 'woocommerce_out_of_stock', $plugin_options );
+	}
+
+
+	/**
+	 * Returns the default settings of the plugin
+	 *
+	 * @return array
+	 */
+	public function plugin_default() 
+	{
+		$default_options = array(
+			'color'    			=> '#fff999',
+			'textcolor'    		=> '#000',
+			'position'    		=> 'woocommerce_single_product_summary',
+		);
+
+		return apply_filters( 'wcosm_default', $default_options );
 	}
 
 
