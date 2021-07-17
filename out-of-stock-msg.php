@@ -524,10 +524,10 @@ class StockOut_Msg_CodersTime {
 
 			        	<?php 
 			        		$args = array( 
-			        			'limit' => -1, 
-			        			'orderby' => 'name', 
-			        			'order' => 'ASC', 
-			        			// 'stock_quantity' => 1,
+			        			'limit' 		=> -1, 
+			        			'orderby' 		=> 'name', 
+			        			'order' 		=> 'ASC', 
+			        			// 'stock_quantity'=> 1,
 			        			// 'status' 		=> 'publish',
 			        			'manage_stock' 	=> 1,
 			        			// 'stock_status' 	=> 'outofstock',
@@ -535,14 +535,14 @@ class StockOut_Msg_CodersTime {
 			        		$out_products = wc_get_products( $args );
 
 			        		foreach( $out_products as $out_product ):
-			        			$get_saved_val 		= get_post_meta( $out_product->id, '_out_of_stock_msg', true);
-								$global_checkbox 	= get_post_meta( $out_product->id, '_wcosm_use_global_note', true);
+			        			$get_saved_val 		= get_post_meta( $out_product->get_id(), '_out_of_stock_msg', true);
+								$global_checkbox 	= get_post_meta( $out_product->get_id(), '_wcosm_use_global_note', true);
 
 			        	 ?>
 
 				            <tr>
-				                <td> <?php echo $out_product->name; ?> </td>
-				                <td> <?php echo $out_product->stock_quantity; ?> </td>
+				                <td> <?php echo $out_product->get_name(); ?> </td>
+				                <td> <?php echo $out_product->get_stock_quantity(); ?> </td>
 				                <td> 
 				                	<?php 
 					                	if( $get_saved_val && $global_checkbox != 'yes') {
