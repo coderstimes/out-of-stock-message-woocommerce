@@ -3,7 +3,7 @@ Contributors: coderstime, lincolndu
 Donate link: https://coderstimes.com/stock-out/donate/
 Tags: woocommerce, wc, stock message, message, out of stock message, custom out of stock message, STOCKOUT, stock out message, Stock, Inventory Limit, Stock out Note, Out of Stock Note, Out of Stock product Message
 Requires at least: 4.9 or higher
-Tested up to: 5.7
+Tested up to: 5.8
 Requires PHP: 5.6
 Stable tag: 1.0.4
 License: GPLv2 or later
