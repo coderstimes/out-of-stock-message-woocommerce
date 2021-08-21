@@ -72,6 +72,11 @@ class StockOut_Msg_CodersTime {
 
         /*widget load*/
         add_action( 'widgets_init', array( $this, 'wcosm_load_widget') );
+
+        /*Stock out badge*/
+        add_action( 'woocommerce_before_shop_loop_item_title', [ $this, 'display_sold_out_in_loop' ], 10 );
+		add_action( 'woocommerce_before_single_product_summary', [ $this, 'display_sold_out_in_single' ], 30 );
+		add_filter( 'woocommerce_locate_template', [ $this, 'woocommerce_locate_template' ], 1, 3 );
     }
 
     /*Out of stock message widget method*/
@@ -241,9 +246,9 @@ class StockOut_Msg_CodersTime {
     {
     	/*get output*/
     	global $post, $product;
-		$get_saved_val = get_post_meta( $post->ID, '_out_of_stock_msg', true);
-		$global_checkbox = get_post_meta($post->ID, '_wcosm_use_global_note', true);
-		$global_note = get_option('woocommerce_out_of_stock_message');
+		$get_saved_val 		= get_post_meta( $post->ID, '_out_of_stock_msg', true);
+		$global_checkbox 	= get_post_meta($post->ID, '_wcosm_use_global_note', true);
+		$global_note 		= get_option('woocommerce_out_of_stock_message');
 
 		if( $get_saved_val && !$product->is_in_stock() && $global_checkbox != 'yes') {
 			return sprintf( '<div class="outofstock-message">%s</div> <!-- /.outofstock-product_message -->', $get_saved_val );
@@ -316,7 +321,7 @@ class StockOut_Msg_CodersTime {
 	* Front end
 	*/
 	public function wcosm_scripts_frontend()
-	{
+	{		
 		$bg_color 	= $this->wcosm_option('color');
 		$text_color = $this->wcosm_option('textcolor');
 		?>
@@ -430,6 +435,54 @@ class StockOut_Msg_CodersTime {
 			'id' 		=> 'woocommerce_out_of_stock[textcolor]',
 			'css' 		=> 'width:50%;height:31px;',
 			'type' 		=> 'color',
+			'autoload'  => false
+		);
+
+		$out_stock[] = array (
+			'title' 	=> __( 'Stock Out Badge Show', 'wcosm' ),
+			'desc' 		=> __( ' Enable Stock Out Badge', 'wcosm' ),
+			'id' 		=> 'woocommerce_out_of_stock[show_badge]',
+			'default'	=> 'yes',
+			'css' 		=> 'margin-top:10px;',
+			'type' 		=> 'checkbox',
+			'autoload'  => false
+		);
+
+		$out_stock[] = array (
+			'title' 	=> __( 'Stock Out Badge', 'wcosm' ),
+			'desc' 		=> __( 'Stock Out Badge Text', 'wcosm' ),
+			'id' 		=> 'woocommerce_out_of_stock[badge]',
+			'css' 		=> 'width:53%; height:30px;margin-top:10px;',
+			'type' 		=> 'text',
+			'autoload'  => false
+		);	
+	
+
+		$out_stock[] = array (
+			'title' 	=> __( 'Badge BG Color', 'wcosm' ),
+			'desc' 		=> __( 'Background Color for badge', 'wcosm' ),
+			'id' 		=> 'woocommerce_out_of_stock[badge_bg]',
+			'css' 		=> 'width:50%;height:31px;',
+			'type' 		=> 'color',
+			'autoload'  => false
+		);
+
+		$out_stock[] = array (
+			'title' 	=> __( 'Badge Text Color', 'wcosm' ),
+			'desc' 		=> __( 'Text Color for badge.', 'wcosm' ),
+			'id' 		=> 'woocommerce_out_of_stock[badge_color]',
+			'css' 		=> 'width:50%;height:31px;',
+			'type' 		=> 'color',
+			'autoload'  => false
+		);	
+
+		$out_stock[] = array (
+			'title' 	=> __( 'Hide Sale Badge?', 'wcosm' ),
+			'desc' 		=> __( 'Do you want to hide the "Sale" badge when a product is sold out?', 'wcosm' ),
+			'id' 		=> 'woocommerce_out_of_stock[hide_sale]',
+			'default'	=> 'yes',
+			'css' 		=> 'margin-top:10px;',
+			'type' 		=> 'checkbox',
 			'autoload'  => false
 		);
 
@@ -642,6 +695,27 @@ class StockOut_Msg_CodersTime {
 
 
 	/**
+	 * Display Sold Out badge in products loop
+	 */
+	public function display_sold_out_in_loop() 
+	{
+		if ( $this->wcosm_option( 'show_badge' ) === 'yes' ) {
+			wc_get_template( 'single-product/sold-out.php', $this->wcosm_options() );
+		}		
+	}
+
+	/**
+	 * Display Sold Out badge in single product
+	 */
+	public function display_sold_out_in_single() 
+	{
+		if ( $this->wcosm_option( 'show_badge' ) === 'yes' ) {
+			wc_get_template( 'single-product/sold-out.php', $this->wcosm_options() );
+		}
+	}
+
+
+	/**
 	 * Returns the default settings of the plugin
 	 *
 	 * @return array
@@ -652,9 +726,51 @@ class StockOut_Msg_CodersTime {
 			'color'    			=> '#fff999',
 			'textcolor'    		=> '#000',
 			'position'    		=> 'woocommerce_single_product_summary',
+			'show_badge'		=> 'yes',
+			'badge'				=> 'Sold out!',
+			'badge_bg'			=> '#77a464',
+			'badge_color'		=> '#fff',
+			'hide_sale'			=> 'yes'
 		);
 
 		return apply_filters( 'wcosm_default', $default_options );
+	}
+
+	/**
+	 * Locate plugin WooCommerce templates to override WooCommerce default ones
+	 *
+	 * @param $template
+	 * @param $template_name
+	 * @param $template_path
+	 *
+	 * @return string
+	 */
+	public function woocommerce_locate_template( $template, $template_name, $template_path ) {
+		global $woocommerce;
+		$_template = $template;
+		if ( ! $template_path ) {
+			$template_path = $woocommerce->template_url;
+		}
+
+		$plugin_path = untrailingslashit( plugin_dir_path( __FILE__ ) ) . '/templates/';
+
+		// Look within passed path within the theme - this is priority
+		$template = locate_template(
+			array(
+				$template_path . $template_name,
+				$template_name
+			)
+		);
+
+		if ( ! $template && file_exists( $plugin_path . $template_name ) ) {
+			$template = $plugin_path . $template_name;
+		}
+
+		if ( ! $template ) {
+			$template = $_template;
+		}
+
+		return $template;
 	}
 
 

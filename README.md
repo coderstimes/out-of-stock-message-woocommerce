@@ -4,7 +4,7 @@ Tags: woocommerce, wc, stock message, message, out of stock message, custom out 
 Requires at least: 4.9 or higher
 Tested up to: 5.8
 Requires PHP: 5.6
-Stable tag: 1.0.4
+Stable tag: 1.0.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
