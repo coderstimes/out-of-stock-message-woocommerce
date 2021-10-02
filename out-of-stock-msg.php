@@ -3,7 +3,7 @@
  * Plugin Name: Out of Stock Message for WooCommerce
  * Plugin URI: https://coderstimes.com/stock-out/
  * Description: Out Of Stock Message for WooCommerce plugin for those stock out or sold out message for product details page. Also message can be show with shortcode support. Message can be set for specific product or globally for all products when it sold out. You can change message background and text color from woocommerce inventory settings and customizer woocommerce section. It will show message on single product where admin select to show. Admin also will be notified by email when product stock out. 
- * Version: 1.0.5
+ * Version: 1.0.6
  * Author: coderstime
  * Author URI: https://www.facebook.com/coderstime
  * Domain Path: /languages
@@ -52,13 +52,10 @@ class StockOut_Msg_CodersTime {
         add_action('woocommerce_process_product_meta', array( $this, 'wcosm_product_save_data'), 10, 2);
 
         if( $this->wcosm_option('position') ) {
-        	add_filter('woocommerce_get_stock_html','__return_false');
         	add_action( $this->wcosm_option('position'),array( $this,'wc_single_product_msg'), 6);
         } else {
-        	add_filter('woocommerce_get_stock_html','__return_false');
         	add_action('woocommerce_single_product_summary',array( $this,'wc_single_product_msg'), 6);
         }
-
         add_filter( 'woocommerce_inventory_settings', array( $this, 'wcosm_setting' ), 1 );
         add_action('wp_dashboard_setup', array( $this,'add_stockout_msg_dashboard') );
 
@@ -77,6 +74,7 @@ class StockOut_Msg_CodersTime {
         add_action( 'woocommerce_before_shop_loop_item_title', [ $this, 'display_sold_out_in_loop' ], 10 );
 		add_action( 'woocommerce_before_single_product_summary', [ $this, 'display_sold_out_in_single' ], 30 );
 		add_filter( 'woocommerce_locate_template', [ $this, 'woocommerce_locate_template' ], 1, 3 );
+
     }
 
     /*Out of stock message widget method*/
@@ -102,23 +100,6 @@ class StockOut_Msg_CodersTime {
 			)
 		);
 
-    	/*Add Manage Stock Setting.*/
-	    $wp_customize->add_setting( 'woocommerce_manage_stock', array(
-	        'default'           => true,
-	        'type'              => 'option',
-	        'transport'         => 'postMessage',
-	        'sanitize_callback' => 'wcosm_sanitize_checkbox',
-	    ) );
-
-	    $wp_customize->add_control( 'woocommerce_manage_stock', array(
-	        'label'    => __( 'Manage stock', 'wcosm' ),
-	        'section'  => 'wcosm_stock_out_message',
-	        'settings' => 'woocommerce_manage_stock',
-	        'type'     => 'checkbox',
-	        'priority' => 10,
-	    ) );
-
-
 	    $wp_customize->add_setting(
 			'woocommerce_out_of_stock_message',
 			array(
@@ -142,25 +123,6 @@ class StockOut_Msg_CodersTime {
 			)
 		);
 
-		/*Add Manage Stock Setting.*/
-	    $wp_customize->add_setting( 'woocommerce_notify_no_stock', array(
-	        'default'           => true,
-	        'type'              => 'option',
-	        'transport'         => 'postMessage',
-	        'sanitize_callback' => 'wcosm_sanitize_checkbox',
-	    ) );
-
-		$wp_customize->add_control(
-			'woocommerce_notify_no_stock',
-			array(
-				'label'    => __( 'Enable out of stock notifications', 'wcosm' ),
-				'section'  => 'wcosm_stock_out_message',
-				'settings' => 'woocommerce_notify_no_stock',
-				'type'     => 'checkbox',
-				'priority' => 30,
-			)
-		);
-
 		/*Stock out display box Background Color*/
 		$wp_customize->add_setting(
 			'woocommerce_out_of_stock[color]', array(
@@ -174,8 +136,8 @@ class StockOut_Msg_CodersTime {
 
 		$wp_customize->add_control( new WP_Customize_Color_Control( 
 			$wp_customize, 'woocommerce_out_of_stock[color]', array(
-				'label' 		=> esc_html__( 'Out of Stock Background Color', 'ctpress' ),
-				'description' 	=> esc_html__( 'Stock Out message display are Background Color', 'ctpress' ),
+				'label' 		=> esc_html__( 'Out of Stock Background Color', 'wcosm' ),
+				'description' 	=> esc_html__( 'Stock Out message display are Background Color', 'wcosm' ),
 				'section'   	=> 'wcosm_stock_out_message',
 				'settings'  	=> 'woocommerce_out_of_stock[color]',
 				'priority' 		=> 30,
@@ -196,8 +158,8 @@ class StockOut_Msg_CodersTime {
 
 		$wp_customize->add_control( new WP_Customize_Color_Control( 
 			$wp_customize, 'woocommerce_out_of_stock[textcolor]', array(
-				'label' 		=> esc_html__( 'Out of Stock Background Color', 'ctpress' ),
-				'description' 	=> esc_html__( 'Stock Out message display are Background Color', 'ctpress' ),
+				'label' 		=> esc_html__( 'Out of Stock Background Color', 'wcosm' ),
+				'description' 	=> esc_html__( 'Stock Out message display are Background Color', 'wcosm' ),
 				'section'   	=> 'wcosm_stock_out_message',
 				'settings'  	=> 'woocommerce_out_of_stock[textcolor]',
 				'priority' 		=> 30,
@@ -215,26 +177,70 @@ class StockOut_Msg_CodersTime {
 		);
 
 		$stockout_position_choice = array(
-	      'woocommerce_single_product_summary' 			=> __( 'WC Single Product Summary', 'woocommerce' ),
-	      'woocommerce_before_single_product_summary'	=> __( 'WC Before Single Product Summary', 'woocommerce' ),
-	      'woocommerce_after_single_product_summary'	=> __( 'WC After Single Product Summary', 'woocommerce' ),
-	      'woocommerce_before_single_product' 			=> __( 'WC Before Single Product', 'woocommerce' ),
-	      'woocommerce_after_single_product' 			=> __( 'WC After Single Product', 'woocommerce' ),
-	      'woocommerce_product_meta_start' 				=> __( 'WC product meta start', 'woocommerce' ),
-	      'woocommerce_product_meta_end' 				=> __( 'WC product meta end', 'woocommerce' ),
-	      'woocommerce_product_thumbnails' 				=> __( 'WC product thumbnails', 'woocommerce' ),
-	      'woocommerce_product_thumbnails' 				=> __( 'WC product thumbnails', 'woocommerce' ),
+	      'woocommerce_single_product_summary' 			=> __( 'WC Single Product Summary', 'wcosm' ),
+	      'woocommerce_before_single_product_summary'	=> __( 'WC Before Single Product Summary', 'wcosm' ),
+	      'woocommerce_after_single_product_summary'	=> __( 'WC After Single Product Summary', 'wcosm' ),
+	      'woocommerce_before_single_product' 			=> __( 'WC Before Single Product', 'wcosm' ),
+	      'woocommerce_after_single_product' 			=> __( 'WC After Single Product', 'wcosm' ),
+	      'woocommerce_product_meta_start' 				=> __( 'WC product meta start', 'wcosm' ),
+	      'woocommerce_product_meta_end' 				=> __( 'WC product meta end', 'wcosm' ),
+	      'woocommerce_product_thumbnails' 				=> __( 'WC product thumbnails', 'wcosm' ),
+	      'woocommerce_product_thumbnails' 				=> __( 'WC product thumbnails', 'wcosm' ),
 	    );
 
 		$wp_customize->add_control(
 			'woocommerce_out_of_stock[position]',
 			array(
-				'label'    => __( 'Out of Stock Display Position', 'woocommerce' ),
+				'label'    => __( 'Out of Stock Display Position', 'wcosm' ),
 				'section'  => 'wcosm_stock_out_message',
 				'settings' => 'woocommerce_out_of_stock[position]',
 				'type'     => 'select',
 				'choices'  => $stockout_position_choice,
 				'priority' => 40,
+			)
+		);
+
+	    /*Stock out display stock Color*/
+		$wp_customize->add_setting(
+			'woocommerce_out_of_stock[stock_color]', array(
+			  'default' 		  => '#fff',
+			  'sanitize_callback' => 'sanitize_hex_color',
+			  'type' 			  => 'option',
+			  'transport'         => 'postMessage',
+			  'capability' 		  => 'manage_woocommerce'
+			)
+		); 
+
+		$wp_customize->add_control( new WP_Customize_Color_Control( 
+			$wp_customize, 'woocommerce_out_of_stock[stock_color]', array(
+				'label' 		=> esc_html__( 'Stock Text Color', 'wcosm' ),
+				'description' 	=> esc_html__( 'In Stock Text color', 'wcosm' ),
+				'section'   	=> 'wcosm_stock_out_message',
+				'settings'  	=> 'woocommerce_out_of_stock[stock_color]',
+				'priority' 		=> 55,
+			)
+			)
+		);
+
+	    /*Stock out display stock Background Color*/
+		$wp_customize->add_setting(
+			'woocommerce_out_of_stock[stock_bgcolor]', array(
+			  'default' 		  => '#77a464',
+			  'sanitize_callback' => 'sanitize_hex_color',
+			  'type' 			  => 'option',
+			  'transport'         => 'postMessage',
+			  'capability' 		  => 'manage_woocommerce'
+			)
+		); 
+
+		$wp_customize->add_control( new WP_Customize_Color_Control( 
+			$wp_customize, 'woocommerce_out_of_stock[stock_bgcolor]', array(
+				'label' 		=> esc_html__( 'Stock Background Color', 'wcosm' ),
+				'description' 	=> esc_html__( 'In stock background color', 'wcosm' ),
+				'section'   	=> 'wcosm_stock_out_message',
+				'settings'  	=> 'woocommerce_out_of_stock[stock_bgcolor]',
+				'priority' 		=> 60,
+			)
 			)
 		);
 
@@ -316,18 +322,22 @@ class StockOut_Msg_CodersTime {
 		
 	}
 
-	/*
-	* Scripts
-	* Front end
+	/**
+		* Scripts
+		* Front end
 	*/
 	public function wcosm_scripts_frontend()
 	{		
 		$bg_color 	= $this->wcosm_option('color');
 		$text_color = $this->wcosm_option('textcolor');
+		$stockcolor = $this->wcosm_option('stock_color');
+		$stockbgcolor = $this->wcosm_option('stock_bgcolor');
 		?>
 		<style>
 			.outofstock-message {margin-top: 20px;margin-bottom: 20px;background-color: <?php echo $bg_color; ?>;padding: 20px;color: <?php echo $text_color; ?>;clear:both; }
 			.outofstock-message a { font-style: italic; }
+			.woocommerce div.product .stock { color: <?php echo $stockcolor;?> !important; background-color: <?php echo $stockbgcolor; ?>;padding:10px 20px;font-weight: 700; border-radius: 5px; }
+			.instock_hidden {display: none;}
 		</style>
 		<?php
 	}
@@ -398,6 +408,26 @@ class StockOut_Msg_CodersTime {
 			printf( '<div class="outofstock-message">%s</div> <!-- /.outofstock_global-message -->', $global_note );
 		}
 
+		/*stock out message veriable product*/
+		add_filter('woocommerce_get_stock_html', function( $msg ) {
+			global $product;
+
+        	if ( !$product->is_in_stock() ) {
+        		$msg = '';
+        	}
+
+        	return $msg;
+        });
+
+        add_filter( 'woocommerce_get_availability_class', function( $class ){
+			$stock_qty_show = $this->wcosm_option('stock_qty_show');
+
+			if ( $class ==='in-stock' && $stock_qty_show === 'no' ) {
+				$class .= ' instock_hidden';
+			}
+			return $class;			
+		});
+
 		if ( !$product->is_in_stock() && 'false' === $wcosm_email_admin  ) {
 			$email = WC()->mailer()->emails['StockOut_Stock_Alert'];
         	$email->trigger( null, $product->get_id());
@@ -406,6 +436,8 @@ class StockOut_Msg_CodersTime {
 		if ( $product->is_in_stock() && 'true' == $wcosm_email_admin ) {
 			update_option( 'wcosm_email_admin', 'false');
 		}
+
+		
 	}
 
 	/*WooCommerce settings->product inverntory tab new settings field for out-of-stock message/note*/
@@ -506,6 +538,36 @@ class StockOut_Msg_CodersTime {
 		      'woocommerce_product_thumbnails' 				=> __( 'WC product thumbnails', 'wcosm' ),
 		    ),
 		    'desc_tip' =>  true,
+		);
+
+		$out_stock[] = array (
+			'title' 	=> __( 'Show Stock Quantity', 'wcosm' ),
+			'desc' 		=> __( ' In Stock Quantity Message', 'wcosm' ),
+			'id' 		=> 'woocommerce_out_of_stock[stock_qty_show]',
+			'default'	=> 'yes',
+			'css' 		=> 'margin-top:10px;',
+			'type' 		=> 'checkbox',
+			'autoload'  => false
+		);
+
+		$out_stock[] = array (
+			'title' 	=> __( 'In Stock Quantity Color', 'wcosm' ),
+			'desc' 		=> __( 'In Stock Qunatity Color', 'wcosm' ),
+			'id' 		=> 'woocommerce_out_of_stock[stock_color]',
+			'css' 		=> 'width:50%;height:31px;',
+			'default' 	=> '#fff',
+			'type' 		=> 'color',
+			'autoload'  => false
+		);
+
+		$out_stock[] = array (
+			'title' 	=> __( 'Stock Quantity Background', 'wcosm' ),
+			'desc' 		=> __( 'In Stock Qunatity Background Color', 'wcosm' ),
+			'id' 		=> 'woocommerce_out_of_stock[stock_bgcolor]',
+			'css' 		=> 'width:50%;height:31px;',
+			'default' 	=> '#77a464',
+			'type' 		=> 'color',
+			'autoload'  => false
 		);
 
 		array_splice( $setting, 2, 0, $out_stock );
@@ -638,7 +700,7 @@ class StockOut_Msg_CodersTime {
 	public function wcosm_sanitize_checkbox( $checked ) 
 	{
 		/*Boolean check.*/
-		return ( ( isset( $checked ) && true === $checked ) ? true : false );
+		return ( ( isset( $checked ) && 'true' == $checked ) ? 'true' : 'no' );
 	}
 
 	    /**
@@ -730,7 +792,12 @@ class StockOut_Msg_CodersTime {
 			'badge'				=> 'Sold out!',
 			'badge_bg'			=> '#77a464',
 			'badge_color'		=> '#fff',
-			'hide_sale'			=> 'yes'
+			'hide_sale'			=> 'yes',
+			'stock_qty_show'	=> 'yes',
+			'stock_color'		=> '#fff',
+			'stock_bgcolor'		=> '#77a464',
+			'stock_padding'		=> '20px',
+			'stock_bradius'		=> '10px',
 		);
 
 		return apply_filters( 'wcosm_default', $default_options );
